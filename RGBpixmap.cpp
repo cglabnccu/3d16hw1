@@ -1,5 +1,6 @@
 // RGBpixmap.cpp - routines to read a BMP file
 #include "RGBpixmap.h"
+
 typedef unsigned short ushort;
 typedef unsigned long ulong;
 
@@ -9,7 +10,7 @@ inline ushort getShort(fstream &inf) //helper function
   // get a 2-byte integer stored in little-endian form
 	char ic;
 	ushort ip;
-	inf.get(ic); ip = ic;  //first byte is little one 
+	inf.get(ic); ip = ic;  //first byte is little one
 	inf.get(ic);  ip |= ((ushort)ic << 8); // or in high order byte
 
 	return ip;
@@ -35,10 +36,10 @@ ulong getLong(fstream &inf) //helper function
 
 
 //<<<<<<<<<<<<<<<<<< RGBPixmap:: readBmpFile>>>>>>>>>>>>>
-int RGBpixmap::readBMPFile(string fname) 
+int RGBpixmap::readBMPFile(string fname)
 {  // Read into memory an mRGB image from an uncompressed BMP file.
 	// return 0 on failure, 1 on success
-	fstream inf; 
+	fstream inf;
 	inf.open(fname.c_str(), ios::in|ios::binary); //read binary char's
 	if(!inf){ cout << " can't open file: " << fname << endl; return 0;}
 	int k, row, col, numPadBytes, nBytesInRow;
@@ -47,24 +48,24 @@ int RGBpixmap::readBMPFile(string fname)
 	inf.get(ch1); inf.get(ch2); //type: always 'BM'
 	ulong fileSize =      getLong(inf);
 	ushort reserved1 =    getShort(inf);    // always 0
-	ushort reserved2= 	getShort(inf);     // always 0 
+	ushort reserved2= 	getShort(inf);     // always 0
 	ulong offBits =		getLong(inf); // offset to image - unreliable
 	ulong headerSize =     getLong(inf);     // always 40
 	ulong numCols =		getLong(inf); // number of columns in image
 	ulong numRows = 		getLong(inf); // number of rows in image
-	ushort planes=    	getShort(inf);      // always 1 
+	ushort planes=    	getShort(inf);      // always 1
 	ushort bitsPerPixel=   getShort(inf);    //8 or 24; allow 24 here
-	ulong compression =    getLong(inf);      // must be 0 for uncompressed 
-	ulong imageSize = 	getLong(inf);       // total bytes in image 
-	ulong xPels =    	getLong(inf);    // always 0 
-	ulong yPels =    	getLong(inf);    // always 0 
-	ulong numLUTentries = getLong(inf);    // 256 for 8 bit, otherwise 0 
-	ulong impColors = 	getLong(inf);       // always 0 
-	if(bitsPerPixel != 24) 
+	ulong compression =    getLong(inf);      // must be 0 for uncompressed
+	ulong imageSize = 	getLong(inf);       // total bytes in image
+	ulong xPels =    	getLong(inf);    // always 0
+	ulong yPels =    	getLong(inf);    // always 0
+	ulong numLUTentries = getLong(inf);    // 256 for 8 bit, otherwise 0
+	ulong impColors = 	getLong(inf);       // always 0
+	if(bitsPerPixel != 24)
 	{ // error - must be a 24 bit uncompressed image
 		cout << "not a 24 bit/pixelimage, or is compressed!\n";
 		inf.close(); return 0;
-	} 
+	}
 	//add bytes at end of each row so total # is a multiple of 4
 	// round up 3*numCols to next mult. of 4
 	nBytesInRow = ((3 * numCols + 3)/4) * 4;
@@ -92,7 +93,7 @@ int RGBpixmap::readBMPFile(string fname)
 	}
 
 	delete [] buffer;
-	inf.close(); 
+	inf.close();
 	return 1; // success
 }
 
@@ -103,12 +104,12 @@ int RGBpixmap::readBMPFile(string fname)
 
 
 //RGBAPixmap:: readBmpFile
-bool RGBApixmap:: readBMPFile(string fname) 
+bool RGBApixmap:: readBMPFile(string fname)
 {  // Read into memory an mRGB image from an uncompressed BMP file.
 	// return 0 on failure, 1 on success
-	fstream inf; 
+	fstream inf;
 	inf.open(fname.c_str(), ios::in|ios::binary); //read binary char's
-	if(!inf) { 
+	if(!inf) {
 		cout << " can't open file: " << fname << endl; return 0;
 	}
 
@@ -118,24 +119,24 @@ bool RGBApixmap:: readBMPFile(string fname)
 	inf.get(ch1); inf.get(ch2); //type: always 'BM'
 	ulong fileSize =      getLong(inf);
 	ushort reserved1 =    getShort(inf);    // always 0
-	ushort reserved2= 	getShort(inf);     // always 0 
+	ushort reserved2= 	getShort(inf);     // always 0
 	ulong offBits =		getLong(inf); // offset to image - unreliable
 	ulong headerSize =     getLong(inf);     // always 40
 	ulong numCols =		getLong(inf); // number of columns in image
 	ulong numRows = 		getLong(inf); // number of rows in image
-	ushort planes=    	getShort(inf);      // always 1 
+	ushort planes=    	getShort(inf);      // always 1
 	ushort bitsPerPixel=   getShort(inf);    //8 or 24; allow 24 here
-	ulong compression =    getLong(inf);      // must be 0 for uncompressed 
-	ulong imageSize = 	getLong(inf);       // total bytes in image 
-	ulong xPels =    	getLong(inf);    // always 0 
-	ulong yPels =    	getLong(inf);    // always 0 
-	ulong numLUTentries = getLong(inf);    // 256 for 8 bit, otherwise 0 
-	ulong impColors = 	getLong(inf);       // always 0 
-	if(bitsPerPixel != 24) 
+	ulong compression =    getLong(inf);      // must be 0 for uncompressed
+	ulong imageSize = 	getLong(inf);       // total bytes in image
+	ulong xPels =    	getLong(inf);    // always 0
+	ulong yPels =    	getLong(inf);    // always 0
+	ulong numLUTentries = getLong(inf);    // 256 for 8 bit, otherwise 0
+	ulong impColors = 	getLong(inf);       // always 0
+	if(bitsPerPixel != 24)
 	{ // error - must be a 24 bit uncompressed image
 		cout << "not a 24 bit/pixelimage, or is compressed!\n";
 		inf.close(); return false;
-	} 
+	}
 	//add bytes at end of each row so total # is a multiple of 4
 	// round up 3*numCols to next mult. of 4
 	nBytesInRow = ((3 * numCols + 3)/4) * 4;
@@ -165,6 +166,6 @@ bool RGBApixmap:: readBMPFile(string fname)
 	needUpdateTex = true;
 
 	delete [] buffer;
-	inf.close(); 
+	inf.close();
 	return true; // success
 }

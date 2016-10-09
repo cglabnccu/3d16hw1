@@ -12,6 +12,7 @@
 #include <iostream>
 #ifdef __APPLE__
 #include <GLUT/glut.h>
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
 #else
 #include <windows.h>
 //#include <GL/glew.h>

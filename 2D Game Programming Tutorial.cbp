@@ -32,7 +32,11 @@
 			<Add option="-Wall" />
 		</Compiler>
 		<Linker>
-			<Add option="-framework OpenGL -framework GLUT" />
+			<Add library="glut32" />
+			<Add library="opengl32" />
+			<Add library="glu32" />
+			<Add library="winmm" />
+			<Add library="gdi32" />
 		</Linker>
 		<Unit filename="Actor.cpp" />
 		<Unit filename="Actor.h" />
@@ -49,6 +53,8 @@
 		<Unit filename="Vec3.cpp" />
 		<Unit filename="Vec3.h" />
 		<Unit filename="main.cpp" />
+		<Unit filename="mole.cpp" />
+		<Unit filename="mole.h" />
 		<Extensions>
 			<code_completion />
 			<debugger />

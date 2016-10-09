@@ -19,9 +19,11 @@ public :
     void display();
     void action(unsigned long timeSincePrevFrame = 0);
     void changeStateByKeyboard(const KeyEventController & keyEC);
+	void hit();
 
     bool isLeftDirection;
     RGBApixmap * nowPixmap;
+	RGBApixmap * weapon;
     Vec3 speed;
 };
 
