@@ -19,6 +19,7 @@
 
 #include <vector>
 #include <cmath>
+#include <string>
 #include "MainActor.h"
 #include "KeyEventController.h"
 #include "Timer.h"
@@ -32,16 +33,52 @@ MainActor* mainActor;
 KeyEventController keyEC;
 Timer timer;
 Moles* moles;
-int score = 0;
-unsigned long timeLimit = 61000;
+int score =0;
+unsigned long timeLimit = 000;
 int initialHeight = 100;
-
+bool isGameOver = false;
 
 
 int screenWidth = 800, screenHeight = 600;
-void gameOver(int i ){
-       // glColor3f(0.0f, 1.0f, 0.0f);
-	//glRectf(0, 0, screenWidth, screenHeight );
+void gameOver( ){
+    	   char scoreText[10];
+   sprintf(scoreText,"%d",score);
+        glColor3f(0.0f, 1.0f, 0.0f);//background
+	glRectf(0, 0, screenWidth, screenHeight );
+
+
+
+    /*Print GameOver*/
+    RGBpixmapController controller;
+    Vec3 chromaKey(255,255,255);
+    RGBApixmap* gameOverFont = controller.getRGBpixmap("image/Fonts/go.bmp",chromaKey);
+    gameOverFont->blendTex(168, 255 ,1,1);
+    gameOverFont = controller.getRGBpixmap("image/Fonts/score.bmp",chromaKey);
+    gameOverFont->blendTex(168+30, 255+165 ,1,1);
+
+   char numberFont[30] ;
+
+
+   RGBApixmap* numbers[10];
+
+    for(int i=0;i<10;i++) {
+        sprintf(numberFont,"image/Fonts/%d.bmp",i);
+        numbers[i] = controller.getRGBpixmap(numberFont,chromaKey);
+    }
+   int i = 0;
+
+
+   while(scoreText[i] != '\0'){
+       cout << "Print : " << scoreText[i] << endl;
+        numbers[scoreText[i]-48]->blendTex(168+30+180+40*i, 255+165 ,0.6,0.6);
+   i++;
+   }
+
+
+
+
+
+    glutSwapBuffers();
 }
 void myDisplay(void)
 {
@@ -57,17 +94,17 @@ void myDisplay(void)
     glRasterPos2i(10, 550);    //set font start position
     for(int i=0; i<strlen(scoreText); i++)
     {
-        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, scoreText[i]);
+        glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, scoreText[i]);
     }
 
     char timeText[50];
     /*Print Scroe Text*/
-    sprintf(timeText, "time %d", timeRemained/1000);
+    sprintf(timeText, "Time %d", timeRemained/1000);
     glColor3f(1.0, 0.0, 0.0);  //set font color
     glRasterPos2i(300, 550);    //set font start position
     for(int i=0; i<strlen(timeText); i++)
     {
-        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, timeText[i]);
+        glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, timeText[i]);
     }
 
         /*Print Scroe Text*/
@@ -116,8 +153,11 @@ void getHowMuchScore( Moles* moles, const MainActor* mainActor)
 
 }
 void updateTheGame(int value)
-{   if(timer.elapsedTime>timeLimit)
-gameOver(0);
+{   if(timer.elapsedTime>timeLimit){
+    isGameOver = true;
+        gameOver();
+}
+    else{
     if(mainActor->position.x>screenWidth)
         mainActor->position.x -= screenWidth;
     else if(mainActor->position.x<0)
@@ -135,6 +175,7 @@ gameOver(0);
     getHowMuchScore(moles,mainActor);
     glutPostRedisplay();
     glutTimerFunc(GAME_ONE_SHOT_TIME, updateTheGame, 0);
+    }
 }
 
 void SpecialKeyUP(int key, int x, int y)/*{{{*/

@@ -26,7 +26,7 @@ void MainActor::display()
         if(rotationParameter > -90)
         {
             nowPixmap -> blendTexRotate(position.x, position.y,  1, 1,rotationParameter);
-            rotationParameter-=15;
+            rotationParameter-=6;
             speed.x=0;
         }
         else

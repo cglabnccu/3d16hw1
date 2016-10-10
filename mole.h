@@ -1,0 +1,42 @@
+#ifndef _MOLE_H
+#define _MOLE_H
+
+#include "RGBpixmapController.h"
+#include "Vec3.h"
+#include "RGBpixmap.h"
+#include <vector>
+#include "Timer.h"
+extern int screenWidth ;
+extern int screenHeight ;
+extern int initialHeight;
+extern int GAME_ONE_SHOT_TIME;
+
+
+class Mole{
+	public :
+		Vec3 position;
+		Vec3 chromaKey;
+		RGBApixmap* pixMap;
+		RGBApixmap* state[2];
+        unsigned long startTime;
+		unsigned long maxAppearTime;
+		bool hitted;
+
+		Mole();
+		void display(unsigned long);
+		void reset(unsigned long time);
+
+};
+class Moles{
+private:
+
+    int maxMole;
+public:
+    vector<Mole> member;
+		void display(unsigned long);
+    Moles();
+    ~Moles();
+};
+
+
+#endif
