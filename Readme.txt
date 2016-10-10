@@ -1,3 +1,4 @@
+test folk
 作業重點
 1. 利用lab2-2d-texture範例，設計一個2D game。 
 
