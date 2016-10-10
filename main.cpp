@@ -31,10 +31,13 @@ int GAME_ONE_SHOT_TIME = 20;
 
 MainActor* mainActor;
 KeyEventController keyEC;
+RGBpixmapController controller;
+RGBApixmap* text;
+Vec3 chromaKey(255,255,255);
 Timer timer;
 Moles* moles;
 int score ;
-unsigned long timeLimit = 31000;
+unsigned long timeLimit = 61000;
 int initialHeight = 100;
 bool isGameOver = false;
 int screenWidth = 800, screenHeight = 600;
@@ -45,9 +48,26 @@ float bgColor[4]= {11.0/255,251.0/255,251.0/255,1.0};
 void updateTheGame(int value);
 void reset();
 
+void printMyNumberFont(char* numbers, int x, int y, float scale){
+    char numberFont[20]  ;
+    RGBApixmap* numbersPic[10];
+    int i=0;
+    for(i; i<10; i++)
+    {
+        sprintf(numberFont,"image/Fonts/%d.bmp",i);
+        numbersPic[i] = controller.getRGBpixmap(numberFont,chromaKey);
+    }
+    i = 0;
+    while(numbers[i] != '\0')
+    {
+        numbersPic[numbers[i]-48]->blendTex(x+scale*67.0*i, y,scale,scale);
+        i++;
+    }
+}
+
 void gameOver( int u =0)
 {
-            isGameOver = true;
+    isGameOver = true;
     char scoreText[10];
     sprintf(scoreText,"%d",score);
     glColor3f(0.0f, 1.0f, 0.0f);//background
@@ -56,31 +76,16 @@ void gameOver( int u =0)
 
 
     /*Print GameOver*/
-    RGBpixmapController controller;
-    Vec3 chromaKey(255,255,255);
-    RGBApixmap* text = controller.getRGBpixmap("image/Fonts/go.bmp",chromaKey);
+
+    text = controller.getRGBpixmap("image/Fonts/go.bmp",chromaKey);
     text->blendTex(168, 255,1,1); //GMAEOVER
     text = controller.getRGBpixmap("image/Fonts/score.bmp",chromaKey);
     text->blendTex(168+30, 255+130,1,1); //SCORE :
     text = controller.getRGBpixmap("image/Fonts/restart.bmp",chromaKey);
     text->blendTex(168+20, 255-100,1,1);//Press R to restart
 
-    char numberFont[30] ;
-    RGBApixmap* numbers[10];
-    int i=0;
-    for(i; i<10; i++)
-    {
-        sprintf(numberFont,"image/Fonts/%d.bmp",i);
-        numbers[i] = controller.getRGBpixmap(numberFont,chromaKey);
-    }
+    printMyNumberFont(scoreText,168+30+180, 255+130,0.6);
 
-    i = 0;
-    while(scoreText[i] != '\0')
-    {
-        //    cout << "Print : " << scoreText[i] << endl;
-        numbers[scoreText[i]-48]->blendTex(168+30+180+40*i, 255+130,0.6,0.6);
-        i++;
-    }
     glutSwapBuffers();
 
     /*Restart*/
@@ -108,24 +113,21 @@ void myDisplay(void)
     glColor3f(fgColor[0],fgColor[1],fgColor[2]);
     glRectf(0,0,screenWidth,initialHeight);
 
-    char scoreText[30];
-    /*Print Scroe Text*/
-    sprintf(scoreText, "Score %d", score);
-    glColor3f(1.0, 0.0, 0.0);  //set font color
-    glRasterPos2i(10, 550);    //set font start position
-    for(int i=0; i<strlen(scoreText); i++)
-    {
-        glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, scoreText[i]);
-    }
+    /*Print Score */
+    text = controller.getRGBpixmap("image/Fonts/score.bmp",chromaKey);
+    text->blendTex(20, 550,0.4,0.4);
+    char scoreText[10];
+        sprintf(scoreText,"%d",score);
+    printMyNumberFont(scoreText,20+179*0.4+5,550-10,0.4);
 
-    char timeText[50];
-    /*Print Scroe Text*/
-    sprintf(timeText, "Time %d", timeRemained/1000);
-    glRasterPos2i(350, 550);    //set font start position
-    for(int i=0; i<strlen(timeText); i++)
-    {
-        glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, timeText[i]);
-    }
+
+
+    /*Print Time*/
+    text = controller.getRGBpixmap("image/Fonts/time.bmp",chromaKey);
+    text->blendTex(20+300, 535,0.8,0.8);
+       char timeText[20];
+        sprintf(timeText,"%d",timeRemained/1000);
+    printMyNumberFont(timeText,20+300+146*0.8+5,535-10,0.6);
 
     /*Print Scroe Text*/
     cout <<"ms Per Frame : " << timer.timeSincePrevFrame << "  | FPS : " <<1000.0/timer.timeSincePrevFrame<<endl;

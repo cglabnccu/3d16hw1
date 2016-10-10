@@ -19,12 +19,11 @@ MainActor::MainActor(Vec3 pos, Vec3 key)
 void MainActor::display()
 {
     RGBpixmapController controller;
-    RGBpixmapController weaponController;
     static char walkBMPpath[]  = "image/hammer.bmp";
     nowPixmap = controller.getRGBpixmap(walkBMPpath, chromaKey);
     if(hitted)
     {
-        speed.x=0;
+      speed.x=0;
         if(!hammerBacked&&rotationParameter > -90)
             rotationParameter-=6;
         else if (!hammerBacked&&rotationParameter == -90)
