@@ -35,8 +35,10 @@ void MainActor::display()
             hammerBacked = false;
             hitted = false;
         }
+         nowPixmap -> blendTexRotate(position.x, position.y,  1, 1,rotationParameter);
     }
-    nowPixmap -> blendTexRotate(position.x, position.y,  1, 1,rotationParameter);
+    else
+         nowPixmap -> blendTex(position.x, position.y, (isLeftDirection ? -1 : 1), 1);
 
 }
 
@@ -50,6 +52,7 @@ void MainActor::action(unsigned long timeSincePrevFrame)
         speed.x -= (resistanceAcceleration * timeSincePrevFrame/1000);
         if(fabs(speed.x) < 0.02) speed.x = 0;
         double displacementX = (prevSpeed + speed.x) * timeSincePrevFrame / 2;
+        if(!hitted)
         position.x += displacementX;
     }
 
