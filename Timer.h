@@ -28,6 +28,7 @@ public :
     unsigned long prevTime;
     unsigned long startTime;
     Timer();
+    ~Timer();
     void reset();
     void update();
 };

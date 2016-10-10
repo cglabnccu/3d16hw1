@@ -22,7 +22,7 @@
 #include <string>
 #include "MainActor.h"
 #include "KeyEventController.h"
-#include "Timer.h"
+#include "timer.h"
 #include "mole.h"
 
 
@@ -33,60 +33,81 @@ MainActor* mainActor;
 KeyEventController keyEC;
 Timer timer;
 Moles* moles;
-int score =0;
-unsigned long timeLimit = 000;
+int score ;
+unsigned long timeLimit = 31000;
 int initialHeight = 100;
 bool isGameOver = false;
-
-
 int screenWidth = 800, screenHeight = 600;
-void gameOver( ){
-    	   char scoreText[10];
-   sprintf(scoreText,"%d",score);
-        glColor3f(0.0f, 1.0f, 0.0f);//background
-	glRectf(0, 0, screenWidth, screenHeight );
+float fgColor[3]= {248.0/255,219.0/255,14.0/255};
+float bgColor[4]= {11.0/255,251.0/255,251.0/255,1.0};
+
+
+void updateTheGame(int value);
+void reset();
+
+void gameOver( int u =0)
+{
+            isGameOver = true;
+    char scoreText[10];
+    sprintf(scoreText,"%d",score);
+    glColor3f(0.0f, 1.0f, 0.0f);//background
+    glRectf(0, 0, screenWidth, screenHeight );
 
 
 
     /*Print GameOver*/
     RGBpixmapController controller;
     Vec3 chromaKey(255,255,255);
-    RGBApixmap* gameOverFont = controller.getRGBpixmap("image/Fonts/go.bmp",chromaKey);
-    gameOverFont->blendTex(168, 255 ,1,1);
-    gameOverFont = controller.getRGBpixmap("image/Fonts/score.bmp",chromaKey);
-    gameOverFont->blendTex(168+30, 255+165 ,1,1);
+    RGBApixmap* text = controller.getRGBpixmap("image/Fonts/go.bmp",chromaKey);
+    text->blendTex(168, 255,1,1); //GMAEOVER
+    text = controller.getRGBpixmap("image/Fonts/score.bmp",chromaKey);
+    text->blendTex(168+30, 255+130,1,1); //SCORE :
+    text = controller.getRGBpixmap("image/Fonts/restart.bmp",chromaKey);
+    text->blendTex(168+20, 255-100,1,1);//Press R to restart
 
-   char numberFont[30] ;
-
-
-   RGBApixmap* numbers[10];
-
-    for(int i=0;i<10;i++) {
+    char numberFont[30] ;
+    RGBApixmap* numbers[10];
+    int i=0;
+    for(i; i<10; i++)
+    {
         sprintf(numberFont,"image/Fonts/%d.bmp",i);
         numbers[i] = controller.getRGBpixmap(numberFont,chromaKey);
     }
-   int i = 0;
 
-
-   while(scoreText[i] != '\0'){
-       cout << "Print : " << scoreText[i] << endl;
-        numbers[scoreText[i]-48]->blendTex(168+30+180+40*i, 255+165 ,0.6,0.6);
-   i++;
-   }
-
-
-
-
-
+    i = 0;
+    while(scoreText[i] != '\0')
+    {
+        //    cout << "Print : " << scoreText[i] << endl;
+        numbers[scoreText[i]-48]->blendTex(168+30+180+40*i, 255+130,0.6,0.6);
+        i++;
+    }
     glutSwapBuffers();
+
+    /*Restart*/
+    if(keyEC.isKeyStateDown('r'))
+    {
+        score = 0;
+        delete mainActor;
+        delete moles;
+        mainActor = new MainActor(Vec3(0,initialHeight-15,0), Vec3(255, 255, 255));
+        moles = new Moles();
+        reset();
+        updateTheGame(0);
+        return;
+    }
+    glutTimerFunc(10,gameOver, 0);
+
 }
+
 void myDisplay(void)
 {
     unsigned long timeRemained = timer.elapsedTime>timeLimit?0:timeLimit-timer.elapsedTime;
     glClear(GL_COLOR_BUFFER_BIT);
     moles->display(timer.elapsedTime);
     mainActor -> display();
+    glColor3f(fgColor[0],fgColor[1],fgColor[2]);
     glRectf(0,0,screenWidth,initialHeight);
+
     char scoreText[30];
     /*Print Scroe Text*/
     sprintf(scoreText, "Score %d", score);
@@ -100,16 +121,15 @@ void myDisplay(void)
     char timeText[50];
     /*Print Scroe Text*/
     sprintf(timeText, "Time %d", timeRemained/1000);
-    glColor3f(1.0, 0.0, 0.0);  //set font color
-    glRasterPos2i(300, 550);    //set font start position
+    glRasterPos2i(350, 550);    //set font start position
     for(int i=0; i<strlen(timeText); i++)
     {
         glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, timeText[i]);
     }
 
-        /*Print Scroe Text*/
-        cout <<"ms Per Frame : " << timer.timeSincePrevFrame << "  | FPS : " <<1000.0/timer.timeSincePrevFrame<<endl;
-     glutSwapBuffers();
+    /*Print Scroe Text*/
+    cout <<"ms Per Frame : " << timer.timeSincePrevFrame << "  | FPS : " <<1000.0/timer.timeSincePrevFrame<<endl;
+    glutSwapBuffers();
 }
 
 bool AABBtest(float px, float py, float rx1, float ry1, float rx2, float ry2)
@@ -152,31 +172,6 @@ void getHowMuchScore( Moles* moles, const MainActor* mainActor)
     }
 
 }
-void updateTheGame(int value)
-{   if(timer.elapsedTime>timeLimit){
-    isGameOver = true;
-        gameOver();
-}
-    else{
-    if(mainActor->position.x>screenWidth)
-        mainActor->position.x -= screenWidth;
-    else if(mainActor->position.x<0)
-        mainActor->position.x += screenWidth;
-
-    static Timer timerForMainActor;
-    timerForMainActor.update();
-    if(timerForMainActor.elapsedTime > 1000 + rand() % 1000)
-    {
-        timerForMainActor.reset();
-    }
-    mainActor -> changeStateByKeyboard(keyEC);
-    timer.update();
-    mainActor -> action(timer.timeSincePrevFrame);
-    getHowMuchScore(moles,mainActor);
-    glutPostRedisplay();
-    glutTimerFunc(GAME_ONE_SHOT_TIME, updateTheGame, 0);
-    }
-}
 
 void SpecialKeyUP(int key, int x, int y)/*{{{*/
 {
@@ -207,6 +202,32 @@ void myReshape(int w, int h)/*{{{*/
     glLoadIdentity();
 }/*}}}*/
 
+void updateTheGame(int value)
+{
+    if(timer.elapsedTime>timeLimit)
+        gameOver();
+    else
+    {
+        if(mainActor->position.x>screenWidth)
+            mainActor->position.x -= screenWidth;
+        else if(mainActor->position.x<0)
+            mainActor->position.x += screenWidth;
+
+        static Timer timerForMainActor;
+        timerForMainActor.update();
+        if(timerForMainActor.elapsedTime > 1000 + rand() % 1000)
+        {
+            timerForMainActor.reset();
+        }
+        mainActor -> changeStateByKeyboard(keyEC);
+        timer.update();
+        mainActor -> action(timer.timeSincePrevFrame);
+        getHowMuchScore(moles,mainActor);
+        glutPostRedisplay();
+        glutTimerFunc(GAME_ONE_SHOT_TIME, updateTheGame, 0);
+    }
+}
+
 void init()
 {
     glutKeyboardUpFunc(keyUP);
@@ -215,7 +236,20 @@ void init()
     glutSpecialUpFunc(SpecialKeyUP);
     glutDisplayFunc(myDisplay);
     glutReshapeFunc(myReshape);
-    glClearColor(1.0f, 1.0f, 0.0f, 0.0f);
+    glClearColor(bgColor[0],bgColor[1],bgColor[2],bgColor[3]);
+}
+
+void reset()
+{
+    mainActor = new MainActor(Vec3(0,initialHeight-15,0), Vec3(255, 255, 255));
+    moles = new Moles();
+    timer.reset();
+
+    score = 0;
+    isGameOver = false;
+    timer.reset();
+    timer.update();
+
 }
 
 int main(int argc, char **argv)
@@ -227,11 +261,10 @@ int main(int argc, char **argv)
     glutCreateWindow("Whack a Mole");
     init();
     srand(timer.currentTime);
-    mainActor = new MainActor(Vec3(0,initialHeight-15,0), Vec3(255, 255, 255));
-    moles = new Moles();
 
 
-    timer.reset();
+
+    reset();
     updateTheGame(0);
     glutMainLoop();
     return 0;

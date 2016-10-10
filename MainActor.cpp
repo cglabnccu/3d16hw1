@@ -12,6 +12,7 @@ MainActor::MainActor(Vec3 pos, Vec3 key)
     : Actor(pos, key), isLeftDirection(false), nowPixmap(NULL)
 {
     hitted = false;
+    hammerBacked = false;
     rotationParameter = 0;
 }
 
@@ -23,21 +24,21 @@ void MainActor::display()
     nowPixmap = controller.getRGBpixmap(walkBMPpath, chromaKey);
     if(hitted)
     {
-        if(rotationParameter > -90)
-        {
-            nowPixmap -> blendTexRotate(position.x, position.y,  1, 1,rotationParameter);
+        speed.x=0;
+        if(!hammerBacked&&rotationParameter > -90)
             rotationParameter-=6;
-            speed.x=0;
-        }
-        else
+        else if (!hammerBacked&&rotationParameter == -90)
+            hammerBacked = true;
+        else if (hammerBacked&&rotationParameter < 0)
+            rotationParameter+=6;
+        else if (hammerBacked && rotationParameter == 0 )
         {
-            rotationParameter =0;
+            hammerBacked = false;
             hitted = false;
         }
-
     }
-    else
-        nowPixmap -> blendTex(position.x, position.y, (isLeftDirection ? -1 : 1), 1);
+    nowPixmap -> blendTexRotate(position.x, position.y,  1, 1,rotationParameter);
+
 }
 
 void MainActor::action(unsigned long timeSincePrevFrame)
@@ -57,36 +58,36 @@ void MainActor::action(unsigned long timeSincePrevFrame)
 
 void MainActor::changeStateByKeyboard(const KeyEventController & keyEC)
 {
+
     if(nowPixmap == NULL) return;
 
-    if(speed.y == 0)
+    int isKeyLeftDown = (keyEC.isSpecialKeyStateDown(GLUT_KEY_LEFT) ? -1 : 0);
+    int isKeyRightDown = (keyEC.isSpecialKeyStateDown(GLUT_KEY_RIGHT) ? 1 : 0);
+    int isKeySpaceHit = keyEC.isKeyStateDown(' ') ? 1:0;
+    speed.x += (0.03 * (isKeyLeftDown + isKeyRightDown));
+    if (isKeySpaceHit)
     {
-        int isKeyLeftDown = (keyEC.isSpecialKeyStateDown(GLUT_KEY_LEFT) ? -1 : 0);
-        int isKeyRightDown = (keyEC.isSpecialKeyStateDown(GLUT_KEY_RIGHT) ? 1 : 0);
-        int isKeySpaceHit = keyEC.isKeyStateDown(' ') ? 1:0;
-        speed.x += (0.03 * (isKeyLeftDown + isKeyRightDown));
-        if(isKeyLeftDown && !isLeftDirection)
-        {
-            position = Vec3(position.x + nowPixmap->nCols, position.y);
-            isLeftDirection = true;
-        }
-        if(isKeyRightDown && isLeftDirection)
-        {
-            position = Vec3(position.x - nowPixmap->nCols, position.y);
-            isLeftDirection = false;
-        }
-        if(speed.x != 0 &&
-                !keyEC.isSpecialKeyStateDown(GLUT_KEY_LEFT) &&
-                !keyEC.isSpecialKeyStateDown(GLUT_KEY_RIGHT))
-        {
-            speed.x -= (speed.x * 0.15);
-        }
-        if (isKeySpaceHit)
-        {
-            hitted = true;
-        }
-
+        hitted = true;
+        return;
     }
+    if(isKeyLeftDown && !isLeftDirection)
+    {
+        position = Vec3(position.x + nowPixmap->nCols, position.y);
+        isLeftDirection = true;
+    }
+    if(isKeyRightDown && isLeftDirection)
+    {
+        position = Vec3(position.x - nowPixmap->nCols, position.y);
+        isLeftDirection = false;
+    }
+    if(speed.x != 0 &&
+            !keyEC.isSpecialKeyStateDown(GLUT_KEY_LEFT) &&
+            !keyEC.isSpecialKeyStateDown(GLUT_KEY_RIGHT))
+    {
+        speed.x -= (speed.x * 0.15);
+    }
+
+
 }
 
 

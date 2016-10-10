@@ -23,3 +23,4 @@ void Timer::update()
     elapsedTime = currentTime - startTime;
     prevTime = currentTime;
 }
+Timer::~Timer(){};

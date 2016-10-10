@@ -34,7 +34,7 @@ void Mole::display(unsigned long currentTime)
     else if(hitted){
        pixMap =  state[DEAD];
         if (position.y >0 )
-            position.y-=5;
+            position.y-=3;
         else{
      reset(currentTime);
         }
@@ -74,5 +74,13 @@ void Moles::display(unsigned long currentTime)
 
     }
    //   cout  <<"========== \n";
+}
+Mole::~Mole(){
+    	//delete pixMap;
+	//	delete []  state;
+}
+
+Moles::~Moles(){
+member.clear();
 }
 

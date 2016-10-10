@@ -25,6 +25,7 @@ class Mole{
 		Mole();
 		void display(unsigned long);
 		void reset(unsigned long time);
+		~Mole();
 
 };
 class Moles{

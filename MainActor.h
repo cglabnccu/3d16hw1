@@ -29,6 +29,7 @@ public :
     float rotationParameter;
 private:
     bool hitted;
+    bool hammerBacked;
 
 };
 
