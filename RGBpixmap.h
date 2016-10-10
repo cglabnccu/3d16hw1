@@ -22,7 +22,7 @@ using namespace std;
 typedef unsigned char uchar;
 
 class mRGB{   // the name RGB is already used by Windows
-public: 
+public:
 	uchar		r, g, b;
 
 				mRGB(){r = g = b = 0;}
@@ -33,7 +33,7 @@ public:
 };
 
 class mRGBA{
-public: 
+public:
 	uchar		r, g, b, a;
 
 				mRGBA(){r = g = b = 0; a = 255;}
@@ -170,8 +170,8 @@ public:
 		needUpdateTex = true;
 	}
 
-	~RGBApixmap() { 
-		delete []pixel; 
+	~RGBApixmap() {
+		delete []pixel;
 		// should we clear texture object??
 		if(!glIsTexture(textureId)) {
 			glDeleteTextures(1, &textureId);
@@ -191,13 +191,13 @@ public:
 
 	void freeIt() // give back memory for this pixmap
 	{
-		delete []pixel; 
+		delete []pixel;
 		nRows = nCols = 0;
 	}
 
 	// copy a region of the display back onto the display
 	void copy(IntPoint from, IntPoint to, int x, int y, int width, int height)
-	{ 
+	{
 		if(nRows == 0 || nCols == 0) return;
 		glCopyPixels(x, y, width, height, GL_COLOR);
 	}
@@ -209,7 +209,7 @@ public:
 		glBindTexture(GL_TEXTURE_2D, textureId);
 
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, nCols, nRows, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixel);
-		
+
 		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);//GL_NEAREST
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);//GL_LINEAR
@@ -221,10 +221,10 @@ public:
 	void blend()
 	{
 	    if(nRows == 0 || nCols == 0) return;
-		
+
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	    glEnable(GL_BLEND);
-		
+
 		//tell OpenGL: donot align pixels to 4 byte boundaries in memory
 		glPixelStorei(GL_UNPACK_ALIGNMENT,1);
 		glDrawPixels(nCols, nRows,GL_RGBA, GL_UNSIGNED_BYTE, pixel);
@@ -232,14 +232,14 @@ public:
 		glDisable(GL_BLEND);
 	}
 
-	void blendTex(int x, int y, float scalex=1.0f, float scaley=1.0f)
+	void blendTex(float x, float y, float scalex=1.0f, float scaley=1.0f)
 	{
 		if(nRows == 0 || nCols == 0) return;
 		if(needUpdateTex)
 			setTexture();
 
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	    glEnable(GL_BLEND);	
+	    glEnable(GL_BLEND);
 
 		glEnable(GL_TEXTURE_2D);
 		glBindTexture(GL_TEXTURE_2D, textureId);
@@ -259,7 +259,7 @@ public:
 	}
 
 	//rotate along the center of image
-	void blendTexRotate(int x, int y, float scalex=1.0f, float scaley=1.0f, float angle=0.0f)
+	void blendTexRotate(int x, int y, float scalex=1.0f, float scaley=1.0f, float angle=0.5f)
 	{
 	    if(nRows == 0 || nCols == 0) return;
 
@@ -267,7 +267,7 @@ public:
 			setTexture();
 
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	    glEnable(GL_BLEND);	
+	    glEnable(GL_BLEND);
 
 		glEnable(GL_TEXTURE_2D);
 		glBindTexture(GL_TEXTURE_2D, textureId);
@@ -290,7 +290,7 @@ public:
 
 	// draw this pixmap at current raster position
 	void draw()
-	{ 
+	{
 		if(nRows == 0 || nCols == 0) return;
 
 		//tell OpenGL: donot align pixels to 4 byte boundaries in memory
@@ -300,7 +300,7 @@ public:
 
 	// read a rectangle of pixels into this pixmap
 	int read(int x, int y, int wid, int ht)
-	{ 
+	{
 		nRows = ht;
 		nCols = wid;
 		delete []pixel;
@@ -315,7 +315,7 @@ public:
 
 	// read a rectangle of pixels into this pixmap
 	int read(IntRect r)
-	{ 
+	{
 		nRows = r.top - r.bott;
 		nCols = r.right - r.left;
 		delete []pixel;
