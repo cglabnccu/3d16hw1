@@ -11,8 +11,9 @@
 
 #include <iostream>
 
-class Vec3 {
-    public :
+class Vec3
+{
+public :
     Vec3();
     Vec3(double xx, double yy = 0, double zz = 0);
     double x, y, z;

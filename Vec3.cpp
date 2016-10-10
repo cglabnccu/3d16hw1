@@ -8,10 +8,12 @@
 
 #include "Vec3.h"
 
-Vec3::Vec3() : x(0), y(0), z(0) {
+Vec3::Vec3() : x(0), y(0), z(0)
+{
 
 }
 
-Vec3::Vec3(double xx, double yy, double zz) : x(xx), y(yy), z(zz) {
+Vec3::Vec3(double xx, double yy, double zz) : x(xx), y(yy), z(zz)
+{
 
 }

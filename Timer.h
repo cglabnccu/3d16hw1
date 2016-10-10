@@ -19,8 +19,9 @@
 #include <GL/glut.h>
 #endif
 
-class Timer {
-    public :
+class Timer
+{
+public :
     unsigned long timeSincePrevFrame;
     unsigned long elapsedTime;
     unsigned long currentTime;

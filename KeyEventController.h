@@ -14,11 +14,12 @@
 const unsigned int MAX_KEY_STATE = 256;
 const unsigned int MAX_SPECIAL_KEY_STATE = 256;
 
-class KeyEventController {
-    private :
+class KeyEventController
+{
+private :
     bool keyState[MAX_KEY_STATE];
     bool specialKeyState[MAX_SPECIAL_KEY_STATE];
-    public :
+public :
     KeyEventController();
     void setKeyStateUp(const unsigned char k);
     void setSpecialKeyStateUp(const int k);

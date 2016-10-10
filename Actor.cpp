@@ -8,7 +8,8 @@
 
 #include "Actor.h"
 
-Actor::Actor(Vec3 pos, Vec3 key) {
+Actor::Actor(Vec3 pos, Vec3 key)
+{
     position = pos;
     chromaKey = key;
 }

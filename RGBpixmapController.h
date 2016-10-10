@@ -17,7 +17,8 @@
 
 using namespace std;
 
-class RGBpixmapController {
+class RGBpixmapController
+{
 public:
     void loadRGBpixmapAdvance(const vector<string> & paths,
                               const Vec3 chromaKey = Vec3(-1, -1, -1));

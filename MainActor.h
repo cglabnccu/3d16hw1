@@ -13,18 +13,23 @@
 #include "Actor.h"
 #include "RGBpixmapController.h"
 
-class MainActor : public Actor {
+class MainActor : public Actor
+{
 public :
     MainActor(Vec3 pos = Vec3(), Vec3 key = Vec3(-1, -1, -1));
     void display();
     void action(unsigned long timeSincePrevFrame = 0);
     void changeStateByKeyboard(const KeyEventController & keyEC);
-	void hit();
+    void hit();
 
     bool isLeftDirection;
     RGBApixmap * nowPixmap;
-	RGBApixmap * weapon;
+    RGBApixmap * weapon;
     Vec3 speed;
+    float rotationParameter;
+private:
+    bool hitted;
+
 };
 
 #endif /* defined(___D_Game_Programming_Tutorial__MainActor__) */

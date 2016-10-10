@@ -8,13 +8,16 @@
 
 #include "Timer.h"
 
-Timer::Timer() : elapsedTime(0) {
+Timer::Timer() : elapsedTime(0)
+{
     startTime = prevTime = glutGet(GLUT_ELAPSED_TIME);
 }
-void Timer::reset() {
+void Timer::reset()
+{
     startTime = prevTime = glutGet(GLUT_ELAPSED_TIME);
 }
-void Timer::update() {
+void Timer::update()
+{
     currentTime = glutGet(GLUT_ELAPSED_TIME);
     timeSincePrevFrame = currentTime - prevTime;
     elapsedTime = currentTime - startTime;

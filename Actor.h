@@ -13,8 +13,9 @@
 #include "Vec3.h"
 #include "KeyEventController.h"
 
-class Actor {
-    public :
+class Actor
+{
+public :
     Actor(Vec3 pos = Vec3(), Vec3 key = Vec3(-1, -1, -1));
     Vec3 position;
     Vec3 chromaKey;
