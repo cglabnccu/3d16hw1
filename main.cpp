@@ -1,369 +1,276 @@
-//3D game programming 2016
-//lab2: 2D
+//
+//  main.cpp
+//  2D Game Programming Tutorial
+//
+//  Created by UglyMan.nothinglo on 13/10/7.
+//  Copyright (c) 2013ๅนด UglyMan.nothinglo. All rights reserved.
+//
+
 
 
 #ifdef __APPLE__
 #include <GLUT/glut.h>
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
 #else
 #include <windows.h>
 //#include <GL/glew.h>
 #include <GL/glut.h>
 #endif
 
-#include <stdlib.h>
-#include <time.h>
-#include <string.h>
+#include <vector>
+#include <cmath>
+#include <string>
+#include "MainActor.h"
+#include "KeyEventController.h"
+#include "timer.h"
+#include "mole.h"
 
-#include "RGBpixmap.h"
 
-// Global variables for measuring time (in milli-seconds)
-int startTime;
-int prevTime;
 
-//  http://devmaster.net/forums/topic/7934-aabb-collision/
-bool AABBtest(float ax1, float ay1, float ax2, float ay2, float bx1, float by1, float bx2, float by2)
-{
-    return
-        ax1 > bx2 || ax2 < bx1 ||
-        ay1 > by2 || ay2 < by1;
+int GAME_ONE_SHOT_TIME = 20;
+
+MainActor* mainActor;
+KeyEventController keyEC;
+RGBpixmapController controller;
+RGBApixmap* text;
+Vec3 chromaKey(255,255,255);
+Timer timer;
+Moles* moles;
+int score ;
+unsigned long timeLimit = 61000;
+int initialHeight = 100;
+bool isGameOver = false;
+int screenWidth = 800, screenHeight = 600;
+float fgColor[3]= {248.0/255,219.0/255,14.0/255};
+float bgColor[4]= {11.0/255,251.0/255,251.0/255,1.0};
+
+
+void updateTheGame(int value);
+void reset();
+
+void printMyNumberFont(char* numbers, int x, int y, float scale){
+    char numberFont[20]  ;
+    RGBApixmap* numbersPic[10];
+    int i=0;
+    for(i; i<10; i++)
+    {
+        sprintf(numberFont,"image/Fonts/%d.bmp",i);
+        numbersPic[i] = controller.getRGBpixmap(numberFont,chromaKey);
+    }
+    i = 0;
+    while(numbers[i] != '\0')
+    {
+        numbersPic[numbers[i]-48]->blendTex(x+scale*67.0*i, y,scale,scale);
+        i++;
+    }
 }
 
-static void CheckError(int line)
+void gameOver( int u =0)
 {
-   GLenum err = glGetError();
-   if (err) {
-      printf("GL Error %s (0x%x) at line %d\n",
-             gluErrorString(err), (int) err, line);
-   }
+    isGameOver = true;
+    char scoreText[10];
+    sprintf(scoreText,"%d",score);
+    glColor3f(0.0f, 1.0f, 0.0f);//background
+    glRectf(0, 0, screenWidth, screenHeight );
+
+
+
+    /*Print GameOver*/
+
+    text = controller.getRGBpixmap("image/Fonts/go.bmp",chromaKey);
+    text->blendTex(168, 255,1,1); //GMAEOVER
+    text = controller.getRGBpixmap("image/Fonts/score.bmp",chromaKey);
+    text->blendTex(168+30, 255+130,1,1); //SCORE :
+    text = controller.getRGBpixmap("image/Fonts/restart.bmp",chromaKey);
+    text->blendTex(168+20, 255-100,1,1);//Press R to restart
+
+    printMyNumberFont(scoreText,168+30+180, 255+130,0.6);
+
+    glutSwapBuffers();
+
+    /*Restart*/
+    if(keyEC.isKeyStateDown('r'))
+    {
+        score = 0;
+        delete mainActor;
+        delete moles;
+        mainActor = new MainActor(Vec3(0,initialHeight-15,0), Vec3(255, 255, 255));
+        moles = new Moles();
+        reset();
+        updateTheGame(0);
+        return;
+    }
+    glutTimerFunc(10,gameOver, 0);
+
 }
 
-//Set windows
-int screenWidth = 800 , screenHeight = 600;
-
-int i=0;
-RGBApixmap pic[3]; // create two (empty) global pixmaps
-RGBApixmap bg;
-int whichPic = 0; // which pixmap to display
-int picX=100, picY=100;
-
-int rectX=300, rectY=100;
-
-float rotation_test=0;
-float scale_test=0.3;
-
-
-int jumpState=0;
-int DirectState=0;  //0:right  1:left
-int Gamescore=0;
-
-void init();
-
-//<<<<<<<<<<<<<<<<<<<<<<<<< myMouse >>>>>>>>>>>>>>>>>>>>>>>>
-/*void myMouse(int button, int state, int mx, int my)
-{ // set raster position with a left click
-	if(button == GLUT_LEFT_BUTTON )
-	{
-
-
-		glutPostRedisplay();
-	}
-
-}*/
-//<<<<<<<<<<<<<<<<<<<<<<<<< mouseMove >>>>>>>>>>>>>>>>>
-/*void mouseMove(int x, int y)
-{// set raster position with mouse motion
-	//rasterPos.x = x; rasterPos.y = screenHeight - y;
-	//glRasterPos2i(rasterPos.x, rasterPos.y);
-	glutPostRedisplay();
-}*/
-
-//myReshape
-void myReshape(int w, int h)
-{
-    /* Save the new width and height */
-    screenWidth  = w;
-    screenHeight = h;
-
-    /* Reset the viewport... */
-    glViewport(0, 0, screenWidth, screenHeight);
-
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-
-    glOrtho(0.0, (GLfloat)screenWidth, 0.0, (GLfloat)screenHeight, -1.0, 1.0);
-    glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-}
-
-//myDisplay
 void myDisplay(void)
 {
-	// Measure the elapsed time
-	int currTime = glutGet(GLUT_ELAPSED_TIME);
-	int timeSincePrevFrame = currTime - prevTime;
-	int elapsedTime = currTime - startTime;
-	prevTime = currTime;
+    unsigned long timeRemained = timer.elapsedTime>timeLimit?0:timeLimit-timer.elapsedTime;
+    glClear(GL_COLOR_BUFFER_BIT);
+    moles->display(timer.elapsedTime);
+    mainActor -> display();
+    glColor3f(fgColor[0],fgColor[1],fgColor[2]);
+    glRectf(0,0,screenWidth,initialHeight);
 
-	char fpsmss[30];
-	sprintf(fpsmss, "Fps %.1f", 1000.0/timeSincePrevFrame);
-
-
-	glClear(GL_COLOR_BUFFER_BIT);
-
-    //draw background
-    glRasterPos2i(50, 50);
-    bg.blend();
+    /*Print Score */
+    text = controller.getRGBpixmap("image/Fonts/score.bmp",chromaKey);
+    text->blendTex(20, 550,0.4,0.4);
+    char scoreText[10];
+        sprintf(scoreText,"%d",score);
+    printMyNumberFont(scoreText,20+179*0.4+5,550-10,0.4);
 
 
 
+    /*Print Time*/
+    text = controller.getRGBpixmap("image/Fonts/time.bmp",chromaKey);
+    text->blendTex(20+300, 535,0.8,0.8);
+       char timeText[20];
+        sprintf(timeText,"%d",timeRemained/1000);
+    printMyNumberFont(timeText,20+300+146*0.8+5,535-10,0.6);
 
-	//change direction
-	if(DirectState==0) {
-		pic[whichPic].blendTex(picX, picY);
-		
-	}else {
-		int offset = pic[whichPic].nCols;
-		pic[whichPic].blendTex(picX+offset, picY, -1, 1);
-	}
-
-	//rotation test
-	pic[whichPic].blendTexRotate(100, 250, 1, 1, rotation_test);
-
-	//scale test
-	pic[whichPic].blendTexRotate(250, 250, scale_test, scale_test);
-
-	//bouding box outside test
-    bool Hit = !AABBtest(picX, picY, picX + pic[whichPic].w(), picY + pic[whichPic].h(), rectX, rectY, rectX + 25, rectY + 25);
-	if(Hit) {
-        glColor3f(1.0f, 0.0f, 0.0f);
-		Gamescore -= 1;
-	}else {
-	    glColor3f(0.0f, 1.0f, 0.0f);
-	}
-	glRectf(rectX, rectY, rectX + 25, rectY + 25);
-
-
-	//Font
-	char mss[30];
-	sprintf(mss, "Score %d", Gamescore);
-
-	glColor3f(1.0, 0.0, 0.0);  //set font color
-    glRasterPos2i(10, 550);    //set font start position
-	for(int i=0; i<strlen(mss); i++) {
-		glutBitmapCharacter(GLUT_BITMAP_9_BY_15, mss[i]);
-	}
-
-	glColor3f(0.0, 0.5, 0.3);  //set font color
-    glRasterPos2i(screenWidth-100, 550);    //set font start position
-	for(int i=0; i<strlen(fpsmss); i++) {
-		glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, fpsmss[i]);
-	}
-
-	CheckError(__LINE__);
-
-	glutSwapBuffers();
+    /*Print Scroe Text*/
+    cout <<"ms Per Frame : " << timer.timeSincePrevFrame << "  | FPS : " <<1000.0/timer.timeSincePrevFrame<<endl;
+    glutSwapBuffers();
 }
 
-
-
-void SpecialKeys(int key, int x, int y)
+bool AABBtest(float px, float py, float rx1, float ry1, float rx2, float ry2)
 {
-	// this string keeps the last good setting for the game mode
-    //char gameModeString[40] = "800x600";
-
-	switch(key) {
-	/*	case GLUT_KEY_UP:
-			picY += 5;
-			break;
-		case GLUT_KEY_DOWN:
-			picY -= 5;
-			break;*/
-		case GLUT_KEY_LEFT:
-			picX -= 5;
-			if (whichPic==0) whichPic=1;
-			else whichPic=0;
-			DirectState=1;
-			break;
-		case GLUT_KEY_RIGHT:
-			picX += 5;
-			if (whichPic==0) whichPic=1;
-			else whichPic=0;
-			DirectState=0;
-			break;
-
-	    /*
-		case GLUT_KEY_F1:
-			// define resolution, color depth
-			glutGameModeString("640x480:32");
-			// enter full screen
-			if (glutGameModeGet(GLUT_GAME_MODE_POSSIBLE)) {
-				glutEnterGameMode();
-				sprintf(gameModeString,"640x480:32");
-				// register callbacks again
-				// and init OpenGL context
-				init();
-			}
-			else
-				glutGameModeString(gameModeString);
-			break;
-
-	    case GLUT_KEY_F2:
-				glutFullScreen();
-			break;
-		case GLUT_KEY_F6:
-			// return to default window
-			if (glutGameModeGet(GLUT_GAME_MODE_ACTIVE) != 0)
-				glutLeaveGameMode();
-			break;
-		*/
-		
-
-	}
-	glutPostRedisplay();
+    return px >= rx1 && py >= ry1 && px <=rx2 && py<=ry2;
 }
 
-
-
-void jump(int i)
+void getHowMuchScore( Moles* moles, const MainActor* mainActor)
 {
-    whichPic=2;
+#define PI 3.14159265
+#define ACTORWIDTH  100
+#define  ACTORHEIGHT  140
+#define HAMMERHEIGHT 54
+#define  _R1 52.49761899 //sqrt(pow(16,2)+pow(ACTORWIDTH/2,2) //
+#define  _R2 86.02325267 //sqrt(pow(70,2)+pow(ACTORWIDTH/2,2) //
+#define ANGLE1 1.261093382 //asin(50/_R1)
+#define ANGLE2 0.620249486 //asin(50/_R2)
+#define BASEX (mainActor->position.x+ACTORWIDTH/2)
+#define BASEY (mainActor->position.y+70)
+#define ROTATIONANGLE ((-1)*mainActor->rotationParameter*PI/180)
 
-	if(i<10) {
-		if (i<5) {
-			picY+=15;
-		} else {
-			picY-=15;
-		}
-		i++;
-		glutTimerFunc( 100, jump, i);
-	}else {
-		whichPic=0;
-		jumpState=0;
-	}
+    for(int i =0; i< moles->member.size(); i++)
+    {
+        if(moles->member.at(i).hitted)
+            continue;
+        double newX1=BASEX+_R1*sin(ANGLE1+ROTATIONANGLE);
+        double newY1=BASEY+_R1*cos(ANGLE1+ROTATIONANGLE);
+        double newX2 = BASEX + _R1*sin(ANGLE1+ROTATIONANGLE);
+        double newY2 = BASEY + _R1*cos(ANGLE1+ROTATIONANGLE);
 
-	glutPostRedisplay();
+        if(AABBtest(newX1, newY1,moles->member.at(i).position.x,moles->member.at(i).position.y,moles->member.at(i).position.x+70,moles->member.at(i).position.y+67)
+                || AABBtest(newX2, newY2,moles->member.at(i).position.x,moles->member.at(i).position.y,moles->member.at(i).position.x+70,moles->member.at(i).position.y+67))
+        {
+            // cout <<"HAMMER | Angle : " <<(-1)*mainActor->rotationParameter << " |X,Y : (" <<newX << " , " << newY<< ")"<<endl;
+            //   cout <<"MOLE : ( " <<moles->member.at(i).position.x+70<<" , " << moles->member.at(i).position.y +67<< " ) \n=====================================\n" ;
+            if(moles->member.at(i).isFlower)
+                            score = score-200<=0?0:score-200;
+            else
+                score+=100;
+            moles->member.at(i).hitted=true;
+        }
+    }
+
 }
 
-//back and forth
-void bf(int i)
+void SpecialKeyUP(int key, int x, int y)/*{{{*/
 {
-
-    /*
-        Your Implementation
-	*/
-
-	glutPostRedisplay();
+    keyEC.setSpecialKeyStateUp(key);
 }
-
-
-void fly(int i)
+void SpecialKeyDOWN(int key, int x, int y)
 {
-
-	/*
-        Your Implementation
-	*/
-
-	glutPostRedisplay();
+    keyEC.setSpecialKeyStateDown(key);
 }
-
-void update(int i)
+void keyUP(unsigned char key, int x, int y)
 {
-	double r = double(i)/50.0;
-	
-	rectX = 400 + 250*sin(r);
-
-	rotation_test += 2;
-	scale_test += 0.01;
-
-	++i;
-	glutTimerFunc( 33, update, i);
-	glutPostRedisplay();
+    keyEC.setKeyStateUp(key);
 }
-
-
-//<<<<<<<<<<<<<<<<<<<<<<<< myKeys >>>>>>>>>>>>>>>>>>>>>>
-void myKeys(unsigned char key, int x, int y)
+void keyDOWN(unsigned char key, int x, int y)
 {
-	switch(key)
-	{
-        case 'Q':
-        case 'q':
-			exit(0);
-			break;
+    keyEC.setKeyStateDown(key);
+}/*}}}*/
 
-		case 'm':
-		case ' ':
-			if(jumpState==0) {
-				jumpState=1;
-				Gamescore++;
-				jump(0);
-			}
-			break;
+void myReshape(int w, int h)/*{{{*/
+{
+    screenWidth  = w;
+    screenHeight = h;
+    glViewport(0, 0, screenWidth, screenHeight);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho(0.0, (GLfloat)screenWidth, 0.0, (GLfloat)screenHeight, -1.0, 1.0);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+}/*}}}*/
 
-        case 'b':
-				bf(0);
-			break;
+void updateTheGame(int value)
+{
+    if(timer.elapsedTime>timeLimit)
+        gameOver();
+    else
+    {
+        if(mainActor->position.x>screenWidth)
+            mainActor->position.x -= screenWidth;
+        else if(mainActor->position.x<0)
+            mainActor->position.x += screenWidth;
 
-        case 'f':
-				fly(0);
-			break;
-	} //switch(key)
-
-	glutPostRedisplay();
+        static Timer timerForMainActor;
+        timerForMainActor.update();
+        if(timerForMainActor.elapsedTime > 1000 + rand() % 1000)
+        {
+            timerForMainActor.reset();
+        }
+        mainActor -> changeStateByKeyboard(keyEC);
+        timer.update();
+        mainActor -> action(timer.timeSincePrevFrame);
+        getHowMuchScore(moles,mainActor);
+        glutPostRedisplay();
+        glutTimerFunc(GAME_ONE_SHOT_TIME, updateTheGame, 0);
+    }
 }
-
 
 void init()
 {
-	//GLenum err = glewInit();
-	//if (GLEW_OK != err)
-	//{
-	//  // Problem: glewInit failed, something is seriously wrong.
-	//  fprintf(stderr, "Error: %s\n", glewGetErrorString(err));
-	//}
-	
-	glutSpecialFunc(SpecialKeys);
-	glutKeyboardFunc(myKeys);
-//	glutMouseFunc(myMouse);
-//	glutMotionFunc(mouseMove);
-	glutDisplayFunc(myDisplay);
-	glutReshapeFunc(myReshape);
+    glutKeyboardUpFunc(keyUP);
+    glutKeyboardFunc(keyDOWN);
+    glutSpecialFunc(SpecialKeyDOWN);
+    glutSpecialUpFunc(SpecialKeyUP);
+    glutDisplayFunc(myDisplay);
+    glutReshapeFunc(myReshape);
+    glClearColor(bgColor[0],bgColor[1],bgColor[2],bgColor[3]);
+}
 
-	glShadeModel(GL_SMOOTH); 
-	//glEnable(GL_DEPTH_TEST);
+void reset()
+{
+    mainActor = new MainActor(Vec3(0,initialHeight-15,0), Vec3(255, 255, 255));
+    moles = new Moles();
+    timer.reset();
 
-    glClearColor(1.0f, 1.0f, 0.0f, 0.0f); //background color(1.0, 1.0, 1.0): white color
+    score = 0;
+    isGameOver = false;
+    timer.reset();
+    timer.update();
+
 }
 
 int main(int argc, char **argv)
 {
-	glutInit(&argc, argv);
-	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
-	glutInitWindowSize(screenWidth, screenHeight);
-	glutInitWindowPosition(50, 30);
-	glutCreateWindow("2D World");
+    glutInit(&argc, argv);
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
+    glutInitWindowSize(screenWidth, screenHeight);
+    glutInitWindowPosition(50, 30);
+    glutCreateWindow("Whack a Mole");
+    init();
+    srand(timer.currentTime);
 
-	init();
 
-	srand(time(0));  //rand seed
 
-	cout<<"Reading sprite";
-    pic[0].readBMPFile("image/stand.bmp");  cout<<'.';
-	pic[1].readBMPFile("image/walk.bmp");  cout<<'.';
-    pic[2].readBMPFile("image/fly.bmp");  cout<<'.'<<endl;
-
-	for (int i=0; i<3; i++) pic[i].setChromaKey(232, 248, 248);
-
-	//cout<<"Reading Backgroud........"<<endl;
-	//bg.readBMPFile("image/dog.bmp");
-
-	// Initialize the time variables
-	startTime = glutGet(GLUT_ELAPSED_TIME);
-	prevTime = startTime;
-
-	update(0);
-	glutMainLoop();
-
-	return 0;
+    reset();
+    updateTheGame(0);
+    glutMainLoop();
+    return 0;
 }
 

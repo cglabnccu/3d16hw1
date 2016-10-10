@@ -11,7 +11,7 @@ include_directories( ${OPENGL_INCLUDE_DIRS}  ${GLUT_INCLUDE_DIRS} )
 set(CORELIBS ${GLUT_LIBRARY} ${OPENGL_LIBRARY})
 
 
-add_executable(2Dgame main.cpp RGBpixmap.cpp)
+add_executable(2Dgame main.cpp RGBpixmap.cpp Actor.cpp KeyEventController.cpp MainActor.cpp RGBpixmapController.cpp Timer.cpp Vec3.cpp)
 target_link_libraries(2Dgame ${CORELIBS})
 
 # create the launcher for vs 2010
