@@ -17,10 +17,11 @@ class Mole{
 		Vec3 position;
 		Vec3 chromaKey;
 		RGBApixmap* pixMap;
-		RGBApixmap* state[2];
+		RGBApixmap* state[3];
         unsigned long startTime;
 		unsigned long maxAppearTime;
 		bool hitted;
+		bool isFlower;
 
 		Mole();
 		void display(unsigned long);

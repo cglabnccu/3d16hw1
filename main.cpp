@@ -167,8 +167,10 @@ void getHowMuchScore( Moles* moles, const MainActor* mainActor)
         {
             // cout <<"HAMMER | Angle : " <<(-1)*mainActor->rotationParameter << " |X,Y : (" <<newX << " , " << newY<< ")"<<endl;
             //   cout <<"MOLE : ( " <<moles->member.at(i).position.x+70<<" , " << moles->member.at(i).position.y +67<< " ) \n=====================================\n" ;
-
-            score+=100;
+            if(moles->member.at(i).isFlower)
+                            score = score-200<=0?0:score-200;
+            else
+                score+=100;
             moles->member.at(i).hitted=true;
         }
     }
