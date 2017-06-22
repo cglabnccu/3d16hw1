@@ -12,6 +12,7 @@
 
 #include "RGBpixmap.h"
 
+
 // Global variables for measuring time (in milli-seconds)
 int startTime;
 int prevTime;
